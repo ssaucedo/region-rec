@@ -2,7 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from code.modules import load_regions as csv
 from code.modules import learning_characterization as LC
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.decomposition import PCA
+from sklearn.tree import DecisionTreeClassifier
 
 
 
@@ -26,7 +27,7 @@ carpetaMFCC = 'aprendizaje/MFCC'
 carpetaGMM = 'aprendizaje/GMM'
 
 #########################################################################################################
-
+print("a")
 regions = csv.get_regions_from_csv('aprendizaje/audiosAprendizaje.csv')
 for region in regions:
     print(region.name)
@@ -39,6 +40,7 @@ mfcc1 = regions[0].mfcc_concatenation
 mfcc2 = regions[1].mfcc_concatenation
 conc = np.concatenate((mfcc1, mfcc2))
 
+
 y1 = np.arange(mfcc1.shape[0])
 y2 = np.arange(mfcc2.shape[0])
 y1.fill(1) # -------------------------> 1 = buenosaires
@@ -47,8 +49,12 @@ y1.reshape(1,-1).T
 y2.reshape(1,-1).T
 y = np.concatenate((y1, y2))
 
-clf = LinearDiscriminantAnalysis(solver='lsqr',shrinkage="auto")
-clf.fit(conc, y)
+
+classifier = DecisionTreeClassifier()
+pca = PCA()
+X_r = pca.fit_transform(conc)   # No dimension reduction
+classifier.fit(X_r, y)
+
 
 #############################################################################
 
@@ -77,7 +83,8 @@ for reg in region_Test_list:
       buenos_aires = 0
       # CALCULO COMO PREDICE MFCC DE BUENOS AIRES
       for x in regions_Test[0].mfcc_concatenation:
-        if(clf.predict(x) == 2 ):
+        pca_t= pca.transform(x)
+        if(classifier.predict(pca_t) == 2 ):
             cordoba +=1
         else:
             buenos_aires +=1
@@ -90,7 +97,8 @@ for reg in region_Test_list:
       buenos_aires = 0
       # CALCULO COMO PREDICE MFCC DE CORDOBA
       for x in regions_Test[1].mfcc_concatenation:
-        if(clf.predict(x) == 2 ):
+        pca_t= pca.transform(x)
+        if(classifier.predict(pca_t) == 2 ):
             cordoba +=1
         else:
             buenos_aires +=1
@@ -101,3 +109,7 @@ for reg in region_Test_list:
       print("% cordoba-------->  "+str(cordoba/float(total)))
       print("")
       print("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+
+
+
