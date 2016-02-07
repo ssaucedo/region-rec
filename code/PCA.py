@@ -4,7 +4,20 @@ from code.modules import load_regions as csv
 from code.modules import learning_characterization as LC
 from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 
+
+""" classifiers:
+ from sklearn.tree import DecisionTreeClassifier --------> check n_components
+ from sklearn.naive_bayes import GaussianNB
+ from sklearn.neighbors import KNeighborsClassifier
+ from sklearn.svm import SVC ------> quadratic complexity, 
+ from sklearn.neighbors import KNeighborsClassifier
+
+
+"""
 
 
 class Region:
@@ -27,7 +40,6 @@ carpetaMFCC = 'aprendizaje/MFCC'
 carpetaGMM = 'aprendizaje/GMM'
 
 #########################################################################################################
-print("a")
 regions = csv.get_regions_from_csv('aprendizaje/audiosAprendizaje.csv')
 for region in regions:
     print(region.name)
@@ -50,8 +62,19 @@ y2.reshape(1,-1).T
 y = np.concatenate((y1, y2))
 
 
-classifier = DecisionTreeClassifier()
-pca = PCA()
+#classifier = DecisionTreeClassifier()
+
+#classifier = GaussianNB()
+
+#classifier = SVC(gamma=2, C=1)
+
+classif = 10
+classifier = KNeighborsClassifier(classif)
+# DEFINE n_components
+print(classif)
+nco = 4
+pca = PCA(n_components = nco)
+print(nco)
 X_r = pca.fit_transform(conc)   # No dimension reduction
 classifier.fit(X_r, y)
 
