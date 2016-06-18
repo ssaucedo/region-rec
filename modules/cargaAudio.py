@@ -1,6 +1,6 @@
+#!/usr/bin/python3
 ## Libreria cargaAudio.py
 ## Funciones para cargar audios a memoria normalizandolos en el proceso
-
 # Importo librerias del sistema
 from scipy.io import wavfile
 import numpy as np

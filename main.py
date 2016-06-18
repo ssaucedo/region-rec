@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 import numpy as np
@@ -12,25 +13,6 @@ import modules.cargaAudio as ca
 import os
 
 
-# retrieved from main_normalized
-#firstLanguajeConcatenation = preprocessing.scale(firstLanguajeConcatenation)
-#secondLanguajeConcatenation = preprocessing.scale(secondLanguajeConcatenation)
-
-
-# retrieved from mainRestricted
-#
-"""
-if(r):
-    s = 0
-    if(firstLanguajeConcatenation.shape[0] < secondLanguajeConcatenation.shape[0]):
-        s = firstLanguajeConcatenation.shape[0]
-    else:
-        s = secondLanguajeConcatenation.shape[0]
-    firstLanguajeConcatenation = firstLanguajeConcatenation[:s]
-    secondLanguajeConcatenation = secondLanguajeConcatenation[:s]
-"""
-#
-#
 
 
 def save_info( data, name, wav_id):
