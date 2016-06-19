@@ -2,16 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from features import mfcc
-from features import logfbank
 from sklearn import preprocessing
 
 from modules import learning_characterization as LC
 from sklearn.mixture import GMM
-import modules.cargaAudio as ca
-
 import os
 
+
+"""
+Due to the lenght difference between the chinese and english spoken files
+the analysis is limited to 140000 elements or 9 seconds.
+
+Check LC.generate_MFCC()
+
+English files average lenght = 14.70
+Chinese files average lenght = 9.30
+
+"""
 
 
 
@@ -27,12 +34,11 @@ def save_info( data, name, wav_id):
 
 
 class Region:
-    def __init__(self, name):
+    def __init__(self, name,path_to_files):
         self.name = name
+        self.path = path_to_files
         self.wav_files_id_list = []
-        self.audio_char_list = []
-    def add_audio_char(self,audio_c):
-        self.audio_char_list.append(audio_c)
+        self.char_map = []
     def set_wav_files_id_list(self,RList):
         self.wav_files_id_list = RList
 
@@ -52,21 +58,17 @@ def get_regions_from_csv(csv_directory):
           regions.append(reg)
     return regions
 
-def retrieveCorporas(corpora):
-    regions = []
-    original_dir = os.getcwd()
-    corpora_dir = os.getcwd()+"/corpora/"
-    os.chdir(corpora_dir)
-    original_dir = os.getcwd()
-    for i in os.listdir(os.getcwd()):
-          os.chdir(corpora_dir+"/"+i)
-          reg = Region(i)
-          for root, dirs, filenames in os.walk(os.getcwd()):
-             reg.set_wav_files_id_list(filenames)
-          regions.append(reg)
-    os.chdir(original_dir)
-    return regions
 
+
+def retrieveCorporas(corpus_name,corpus_path,regions):
+        original_dir = os.getcwd()
+        os.chdir(corpus_path)
+        reg = Region(corpus_name,corpus_path)
+        for root, dirs, filenames in os.walk(os.getcwd()):
+            reg.set_wav_files_id_list(filenames)
+            regions.append(reg)
+        os.chdir(original_dir)
+        return regions
 
 
 def saveGMM( gmm, region_name, wav_id, OAA, N ):
@@ -84,23 +86,6 @@ def saveGMM( gmm, region_name, wav_id, OAA, N ):
 
     return
 
-def generate_MFFC_region_list( regions):
-    mapList = []
-    for region in  regions :
-        mapMFCC = {}
-        mfcc = []
-        for file_id in region.wav_files_id_list:
-                mfcc  = generate_MFCC(region.name , file_id)
-                save_info( mfcc, region.name, file_id)
-                mapMFCC[file_id] = mfcc
-        mapList.append(mapMFCC)
-    return  mapList
-
-
-def generate_MFCC(name , file_id):
-     Fs , dat = ca.load_wav_file(name , file_id)
-     MFCC = mfcc(dat,Fs)
-     return MFCC
 
 
 def saveMainGMM( gmm, region_name , N):
@@ -117,31 +102,25 @@ def saveMainGMM( gmm, region_name , N):
 
     return
 
+def concatenate_matrix(elements_keys, matrix, nroTest):
+    concatenation = []
+    for k in elements_keys[:nroTest]:
+            if (len(concatenation) == 0):
+                    concatenation = matrix[k]
+            else:
+                concatenation = np.concatenate((concatenation, matrix[k]))
+    return concatenation
 
-
-def main(l1,l2,nroTest,regions,gmmRecord):
-    g = 1024
-    mapListLoaded = LC.get_MFFC_region_map_list(regions)
+def main(l1,l2,nroTest,regions):
+    g = 2048
     firstLanguaje = regions[l1]
     secondLanguaje = regions[l2]
-    map_firstLanguaje = mapListLoaded[l1]
-    map_secondLanguaje = mapListLoaded[l2]
-    firstLanguajeConcatenation = []
+    map_firstLanguaje = regions[l1].char_map
+    map_secondLanguaje = regions[l2].char_map
 
-    for k in firstLanguaje.wav_files_id_list[:nroTest]:
-            if (len(firstLanguajeConcatenation) == 0):
-                    firstLanguajeConcatenation = map_firstLanguaje[k]
-            else:
-                firstLanguajeConcatenation = np.concatenate((firstLanguajeConcatenation, map_firstLanguaje[k]))
+    firstLanguajeConcatenation = concatenate_matrix(firstLanguaje.wav_files_id_list, map_firstLanguaje, nroTest)
+    secondLanguajeConcatenation = concatenate_matrix(secondLanguaje.wav_files_id_list, map_secondLanguaje, nroTest)
 
-    secondLanguajeConcatenation = []
-    for k in secondLanguaje.wav_files_id_list[:nroTest]:
-            if (len(secondLanguajeConcatenation) == 0):
-                    secondLanguajeConcatenation = map_secondLanguaje[k]
-            else:
-                    secondLanguajeConcatenation = np.concatenate((secondLanguajeConcatenation, map_secondLanguaje[k]))
-    #firstLanguajeConcatenation = preprocessing.scale(firstLanguajeConcatenation)
-    #secondLanguajeConcatenation = preprocessing.scale(secondLanguajeConcatenation)
 
 
     #def leerGMM( region_name, n_comp ):
@@ -180,41 +159,51 @@ def main(l1,l2,nroTest,regions,gmmRecord):
     print(secondLanguaje.name +str(totalSEC))
 
 
-regions = retrieveCorporas('/corpora/')
-mapList = generate_MFFC_region_list(regions)
-gmmRecord = []
 
-main(0,1,30,regions,gmmRecord)
-main(0,1,30,regions,gmmRecord)
-main(0,1,30,regions,gmmRecord)
-main(0,1,30,regions,gmmRecord)
-main(0,1,30,regions,gmmRecord)
-main(0,1,30,regions,gmmRecord)
+chinese_dir = "/home/santiagosau/proyectos/PFI/repository/chinese_corpus/THCHS30_2015/wavFiles/"
+english_dir = "/home/santiagosau/proyectos/PFI/repository/english_corpus/LibriSpeech/wavFiles/"
 
-gmmRecord
- = []
+regions = []
+regions = retrieveCorporas("Chinese",chinese_dir,regions)
+regions = retrieveCorporas("English",english_dir,regions)
 
-main(1,0,30,regions,gmmRecord)
-main(1,0,30,regions,gmmRecord)
-main(1,0,30,regions,gmmRecord)
-main(1,0,30,regions,gmmRecord)
-main(1,0,30,regions,gmmRecord)
-main(1,0,30,regions,gmmRecord)
-gmmRecord = []
+pr = 0.1
+#regions = LC.generate_MFFC_for_regions(regions,pr)  #---------> generate and save MFFC for each .wav of each region. Returns the regions with the char_map field updated
+regions = LC.get_MFFC_for_regions(regions)
 
 
-main(0,1,40,regions,gmmRecord)
-main(0,1,40,regions,gmmRecord)
-main(0,1,40,regions,gmmRecord)
-main(0,1,40,regions,gmmRecord)
-main(0,1,40,regions,gmmRecord)
-main(0,1,40,regions,gmmRecord)
 
-gmmRecord = []
 
-main(1,0,40,regions,gmmRecord)
-main(1,0,40,regions,gmmRecord)
-main(1,0,40,regions,gmmRecord)
-main(1,0,40,regions,gmmRecord)
-main(1,0,40,regions,gmmRecord)
-main(1,0,40,regions,gmmRecord)
+main(0,1,30,regions)
+main(0,1,30,regions)
+main(0,1,30,regions)
+
+main(1,0,30,regions)
+main(1,0,30,regions)
+main(1,0,30,regions)
+
+
+
+
+
+
+"""
+Propietary ALGORITHM
+g = 1024
+
+main(0,1,30,regions)   #Chinese0   English30
+main(0,1,30,regions)   #Chinese14  English16
+main(0,1,30,regions)   #Chinese0   English30
+main(1,0,30,regions)   # English67  Chinese0
+main(1,0,30,regions)   # English67  Chinese0
+main(1,0,30,regions)   #English0  Chinese67
+
+g = 2048
+
+main(0,1,50,regions)   #Chinese0 English10
+main(0,1,50,regions)   #Chinese0 English10
+main(0,1,50,regions)   #Chinese0 English10
+
+
+
+"""

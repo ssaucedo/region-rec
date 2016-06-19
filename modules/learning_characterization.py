@@ -1,24 +1,27 @@
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
+
 import numpy as np
 import warnings
 import scipy.signal as scipy
 import scipy.fftpack as scyfft
+from scipy.io import wavfile
 import os
 
 from sklearn.externals.six.moves import xrange
 from sklearn.mixture import GMM
 
-import modules.base
-import modules.espectro
-import modules.cargaAudio as ca
+import modules.base as base
+import modules.espectro as espectro
 import modules.filters as fl
+
+
+""" https://github.com/jameslyons/python_speech_features """
+from features import mfcc
+
 
 # Ignora DeprecationWarning
 warnings.filterwarnings("ignore", category=DeprecationWarning)
-
-
-
-# Carpetas de archivos MFCC y GMM
 
 
 # Constantes para LPC
@@ -33,23 +36,17 @@ L = 360
 M = 120
 nroFiltrosMEL = 13
 
-powerRelation = 0.2 #------> Relacion potencia promedio - potencia ventana. Se procesan aquellas ventanas con potencia mayor al [powerRelation * Potencia-promedio]
 
 
-def save_info( data, name, wav_id):
-
-
-    os.chdir("D:\\UADE\PFI_workspace\\TestMultilingual")
-    filename = 'caracterizaciones/' + name + '/MFCC_' + wav_id + '/'
+def save_info(data, name, wav_id):
+    filename = 'characterizations/' + name + '/MFCC_' + wav_id + '/'
     os.makedirs(filename)
-
     np.savetxt( (filename + 'MFCC_' + wav_id + '.csv' ), data, fmt='%.18e', delimiter=';', newline='\n', header=('REGION: ' + name + 'PROCESSED IDs:'   +wav_id), footer='', comments='# ')
     return
 
 # Levanta MFCC de archivo CSV
 def load_info(name, wav_id):
-    os.chdir("D:\\UADE\\PFI_workspace\\TestMultilingual\\")
-    filename = 'caracterizaciones/' + name + '/MFCC_' + wav_id + '/'
+    filename = 'characterizations/' + name + '/MFCC_' + wav_id + '/'
     mfcc = np.loadtxt( (filename + 'MFCC_' + wav_id + '.csv' ), delimiter=';',  skiprows=1, ndmin=0) # Evito la primera row por contener el comentario
     return mfcc
 
@@ -62,43 +59,51 @@ def generate_GMM_region_list( regions, mode ):
 
 
 
-def generate_MFFC_region_list( regions, pr):
-    mapList = []
+def generate_MFFC_for_regions( regions, pr):
     for region in  regions :
         mapMFCC = {}
         mfcc = []
         for file_id in region.wav_files_id_list:
-                mfcc  = generate_MFCC(region.name , file_id, pr)
+                mfcc  = generate_MFCC(region.path, file_id, pr)
                 save_info( mfcc, region.name, file_id)
                 mapMFCC[file_id] = mfcc
-        mapList.append(mapMFCC)
-    return  mapList
+        region.char_map = mapMFCC
+    return  regions
 
 
-def get_MFFC_region_map_list( regions):
-    mapList = []
+def get_MFFC_for_regions( regions):
     for region in  regions :
         mapMFCC = {}
         mfcc = []
         for file_id in region.wav_files_id_list:
-                mfcc = load_info( region.name, file_id)
+                mfcc = load_info(region.name, file_id)
                 mapMFCC[file_id] = mfcc
-        mapList.append(mapMFCC)
-    return  mapList
+        region.char_map = mapMFCC
+    return  regions
 
 
+def normalize_audio(dat):
+    maxDat = np.max(np.abs(dat))
+    datNorm = dat.astype(float)/np.float(maxDat)
+    return datNorm
 
-def generate_MFCC(name , file_id, pr):
-     Fs , dat = ca.load_wav_file(name , file_id)
-     dat = fl.filtroPreEnfasis(dat)
-     dat = fl.filtroFIR(dat, Fs)
-     print(name + str(len(dat)))
-     if(len(dat) > 4000):
-         dat = dat[:4000]
-     # CalculateMFCC
-     WDFFT, Fs = getFilteredWindowedDFFT(dat, Fs, pr)
-     MF = getMF(WDFFT , nroFiltrosMEL, Fs)
-     MFCC = getMFCC(MF)
+
+def generate_MFCC(file_path, file_id, pr):
+     """ Limited dat because of differences with Chinese and English corporas"""
+     Fs , dat = wavfile.read(file_path + file_id)
+     if(len(dat) > 140000):
+         dat = dat[:140000]
+     dat = normalize_audio(dat).astype(float)
+     MFCC = mfcc(dat)
+
+     """WARNING"""
+     print("WARNING CHECK WHICH MFCC ALGORITHM IS BEING USED")
+     #dat = fl.filtroPreEnfasis(dat)
+     #dat = fl.filtroFIR(dat, Fs)
+     #WDFFT, Fs = getFilteredWindowedDFFT(dat, Fs, pr)
+     #MF = getMF(WDFFT , nroFiltrosMEL, Fs)
+     #MFCC = getMFCC(MF)
+
 
      return MFCC
 
