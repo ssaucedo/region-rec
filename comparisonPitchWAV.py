@@ -8,6 +8,7 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from scipy.io import wavfile
 from subprocess import call
 
 import warnings
@@ -65,55 +66,31 @@ def getFormant(matrix, i):
     return [row[i] for row in matrix]
 
 
-"""Script to generate descrptors;
-files_path = "*/resourcesNBas/"
-script_path = "modules/praat/exportToFile.script"
-gdata.extractData(files_path, script_path)
+def normalizeDataTime(data,time):
+    if(len(data) == len(time)):
+       return data, time
+    if(len(data) > len(time)):
+       return data[:len(time)], time
+    if(len(time) > len(data)):
+       return data, time[:len(data)]
 
-"""
-""" Plot Pitch  """
 
+""" COMPARISON BS AS """
+
+Fs, data = wavfile.read("resourcesNBas/Buenos_Aires_parte1_1.wav")
 ax1 = plt.subplot(211)
+plt.title('Buenos Aires WAVE', loc='left')
+t = np.arange(0.0, len(data)/Fs , 1/Fs)
+data , t = normalizeDataTime(data,t)
+plt.plot(t, data)
+
+
+plt.subplot(212, sharex=ax1)
 plt.title('Buenos Aires PITCH', loc='left')
 
-data_path = */formant-log.txt"
-pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
-t = np.arange(0.0, 8000, 1)
+data_path = "resourcesNBas/filesAnalysis/Buenos_Aires_parte1_1.wav/formant-log.txt"
+pitchPRAAT = getFormant(getFormantMatrix(data_path), 0)
+t = np.arange(0.0, len(data)/Fs, 0.01032367)
 plt.plot(t, pitchPRAAT[:8000])
-
-
-plt.subplot(212, sharex=ax1)
-plt.title('Neuquen PITCH', loc='left')
-
-data_path = "*/formant-log.txt"
-pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
-t = np.arange(0.0, 8000, 1)
-plt.plot(t, pitchPRAAT[:8000])
-
-
-
-""" Plot Formant 1
-
-ax1 = plt.subplot(211)
-plt.title('Buenos Aires Formant 1', loc='left')
-
-data_path = "*/formant-log.txt"
-pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
-t = np.arange(0.0, len(pitchPRAAT), 1)
-plt.plot(t, pitchPRAAT)
-
-
-plt.subplot(212, sharex=ax1)
-plt.title('Neuquen Formant 1', loc='left')
-
-data_path = "*/formant-log.txt"
-pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
-t = np.arange(0.0, len(pitchPRAAT), 1)
-plt.plot(t, pitchPRAAT)
-"""
-
-
-
-
 
 plt.show()
