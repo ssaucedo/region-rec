@@ -1,0 +1,44 @@
+form Test command line calls
+    sentence File_path
+    sentence Files_analysis_path
+
+endform
+
+header_row$ = "Filename: " +tab$ + file_path$ +  newline$
+header_row$ > 'files_analysis_path$'formant-log.txt
+fileappend "'files_analysis_path$'formant-log.txt" 'F0''tab$''tab$''F1''tab$''F2''tab$''F3''newline$'
+
+Read from file... 'file_path$'
+object_name$ = selected$ ("Sound")
+To Formant (burg)... 0.0025 5 5000 0.025 50
+select Sound 'object_name$'
+To Pitch... 0.01 75 600
+
+select Formant 'object_name$'
+numberOfFrames = Get number of frames
+for iframe to numberOfFrames
+    time = Get time from frame... iframe
+    select Formant 'object_name$'
+    f_one = Get value at time... 1 time Hertz Linear
+    if f_one = undefined
+      f_one = 0
+    endif
+    f_two = Get value at time... 2 time Hertz Linear
+    if f_two = undefined
+      f_two = 0
+    endif
+    f_three = Get value at time... 3 time Hertz Linear
+    if f_three = undefined
+      f_three = 0
+    endif
+    select Pitch 'object_name$'
+    f_zero = Get value at time... time Hertz Linear
+    if f_zero = undefined
+      f_zero = 0
+    endif
+    fileappend "'files_analysis_path$'formant-log.txt" 'f_zero:0''tab$''f_one:0''tab$''f_two:0''tab$''f_three:0''newline$'
+endfor
+select all
+Remove
+clearinfo
+print All files have been processed.  What next?
