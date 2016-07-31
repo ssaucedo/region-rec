@@ -7,6 +7,10 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+from subprocess import call
+
+import warnings
+warnings.filterwarnings('ignore')
 
 class Region:
     def __init__(self, name,path_to_files):
@@ -19,11 +23,6 @@ class Region:
     def set_wav_files_id_list(self,RList):
         self.wav_files_id_list = RList
 
-def load_wav_file( file_path , file_name ):
-    Fs, dat = wavfile.read(file_path + file_name)
-    return Fs, dat
-
-
 def retrieveCorporas(corpus_name,corpus_path, group,regions):
         file_dir = corpus_path + "/" + group + "/"
         original_dir = os.getcwd()
@@ -35,6 +34,8 @@ def retrieveCorporas(corpus_name,corpus_path, group,regions):
         os.chdir(original_dir)
         return regions
 
+# YAAPT
+
 def getPitch(file_dir, file_name):
     Fs, data = load_wav_file(file_dir, file_name)
     t = np.arange(0.0, len(data)/Fs, 1/Fs)
@@ -43,48 +44,57 @@ def getPitch(file_dir, file_name):
     return pitch, t
 
 
+# PRAAT
+
+def getFormantMatrix(data_path):
+    matrix = []
+    for line in skipTwoReturnIterator(data_path):
+        if line.strip():
+            line = line.strip("\n").split("\t")
+            matrix.append(list(map(int, line)))
+    return matrix
+
+def skipTwoReturnIterator(data_path):
+    iterLines = iter(open(data_path))
+    next(iterLines)
+    next(iterLines)
+    return iterLines
+
+def getFormant(matrix, i):
+    return [row[i] for row in matrix]
+
+
+
+script_path = ""
+name =   "english_speech.wav"
 """
-buenos_aires_path = "/home/santiagosau/PFI-UADE/PFI/repository/deuch-no-upload/deuch-no-upload/Buenos Aires"
-neuquen_path = "/home/santiagosau/PFI-UADE/PFI/repository/deuch-no-upload/deuch-no-upload/Neuquen"
-group = "Parte_1"
-
-regions = []
-regions = retrieveCorporas("buenos aires",buenos_aires_path, group, regions)
-regions = retrieveCorporas("neuquen",neuquen_path, group, regions)
-
-
-buenos_aires_group_path = regions[0].path
-neuquen_group_path = regions[1].path
-
-buenos_aires_ids = regions[0].wav_files_id_list
-neuquen_ids = regions[1].wav_files_id_list
-
-plt.subplot(211)
-pitch , t = getPitch(buenos_aires_group_path, buenos_aires_ids[2] )
-plt.plot(t, pitch.values)
-
-
-plt.subplot(212)
-pitch , t = getPitch(neuquen_group_path, neuquen_ids[2] )
-plt.plot(t, pitch.values)
-plt.show
-
-
-for file_name in regions[n].wav_files_id_list:
-         print(file_name)
-         Fs, dat = load_wav_file(regions[n].path, file_name)
-         p = p + len(dat)
-print(p/(len(regions[n].wav_files_id_list)))
+files_path = ""
+analysisPath = files_path + "filesAnalysis/"
+os.makedirs(analysisPath)
+file_path = files_path + name
+files_analysis_path = analysisPath + name + "/"
+os.makedirs(files_analysis_path)
+call(["praat",  script_path , file_path , files_analysis_path])
 """
-
 
 Fs, data = wavfile.read((os.getcwd()+"/resources/english_speech.wav"))
+
+
+ax1 = plt.subplot(211)
+data_path = ""
+matrix = getFormantMatrix(data_path)
+pitchPRAAT = getFormant(matrix, 0)
+t = np.arange(0.0, 1200, 1)
+t = np.arange(0.0, len(data)/Fs, (len(data)/Fs)/1200)
+
+plt.plot(t, pitchPRAAT[:1200])
+
+
+""" PRINT YAAPT """
+plt.subplot(212, sharex=ax1)
 data = LC.normalize_audio(data[1:len(data)-2])
-
-
 t = np.arange(0.0, len(data)/Fs, 1/Fs)
 signal = basic.SignalObj(data, Fs)
 pitch = pYAAPT.yaapt(signal)
-
 plt.plot(t, pitch.values)
 plt.show()
