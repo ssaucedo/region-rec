@@ -65,10 +65,10 @@ def getFormant(matrix, i):
 
 
 
-script_path = ""
+script_path = "***.script"
 name =   "english_speech.wav"
 """
-files_path = ""
+files_path = "***/resources/"
 analysisPath = files_path + "filesAnalysis/"
 os.makedirs(analysisPath)
 file_path = files_path + name
@@ -81,7 +81,7 @@ Fs, data = wavfile.read((os.getcwd()+"/resources/english_speech.wav"))
 
 
 ax1 = plt.subplot(211)
-data_path = ""
+data_path = "***/formant-log.txt"
 matrix = getFormantMatrix(data_path)
 pitchPRAAT = getFormant(matrix, 0)
 t = np.arange(0.0, 1200, 1)

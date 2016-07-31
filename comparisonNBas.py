@@ -2,6 +2,7 @@
 import amfm_decompy.pYAAPT as pYAAPT
 import amfm_decompy.basic_tools as basic
 from modules import learning_characterization as LC
+from modules.praat import scanAndGeneratePRAAT as gdata
 from scipy.io import wavfile
 import os
 import matplotlib.pyplot as plt
@@ -64,37 +65,51 @@ def getFormant(matrix, i):
     return [row[i] for row in matrix]
 
 
-
-script_path = ""
-name =   "english_speech.wav"
-"""
+""" Script to generate descrptors;
 files_path = ""
-analysisPath = files_path + "filesAnalysis/"
-os.makedirs(analysisPath)
-file_path = files_path + name
-files_analysis_path = analysisPath + name + "/"
-os.makedirs(files_analysis_path)
-call(["praat",  script_path , file_path , files_analysis_path])
+script_path = ""
+gdata.extractData(files_path, script_path)
 """
 
-Fs, data = wavfile.read((os.getcwd()+"/resources/english_speech.wav"))
 
+""" Plot Pitch  """
 
 ax1 = plt.subplot(211)
-data_path = ""
-matrix = getFormantMatrix(data_path)
-pitchPRAAT = getFormant(matrix, 0)
-t = np.arange(0.0, 1200, 1)
-t = np.arange(0.0, len(data)/Fs, (len(data)/Fs)/1200)
+plt.title('Buenos Aires PITCH', loc='left')
 
-plt.plot(t, pitchPRAAT[:1200])
+data_path = "****/formant-log.txt"
+pitchPRAAT = getFormant(getFormantMatrix(data_path), 0)
+t = np.arange(0.0, len(pitchPRAAT), 1)
+plt.plot(t, pitchPRAAT)
 
 
-""" PRINT YAAPT """
 plt.subplot(212, sharex=ax1)
-data = LC.normalize_audio(data[1:len(data)-2])
-t = np.arange(0.0, len(data)/Fs, 1/Fs)
-signal = basic.SignalObj(data, Fs)
-pitch = pYAAPT.yaapt(signal)
-plt.plot(t, pitch.values)
+plt.title('Neuquen PITCH', loc='left')
+
+data_path = "****/formant-log.txt"
+pitchPRAAT = getFormant(getFormantMatrix(data_path), 0)
+t = np.arange(0.0, len(pitchPRAAT), 1)
+plt.plot(t, pitchPRAAT)
+
+
+
+""" Plot Formant 1 """
+
+ax1 = plt.subplot(211)
+plt.title('Buenos Aires Formant 1', loc='left')
+
+data_path =  "****/formant-log.txt"
+pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
+t = np.arange(0.0, len(pitchPRAAT), 1)
+plt.plot(t, pitchPRAAT)
+
+
+plt.subplot(212, sharex=ax1)
+plt.title('Neuquen Formant 1', loc='left')
+
+data_path = "****/formant-log.txt"
+pitchPRAAT = getFormant(getFormantMatrix(data_path), 1)
+t = np.arange(0.0, len(pitchPRAAT), 1)
+plt.plot(t, pitchPRAAT)
+
 plt.show()

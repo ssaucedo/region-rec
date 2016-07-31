@@ -15,18 +15,13 @@ def retrieveCorporas(files_path):
         return reg
 
 
-files_path = ""
-files_names = retrieveCorporas(files_path)
-script_path = ""
-analysisPath = files_path + "filesAnalysis/"
-files_analysis_path = analysisPath +  "name" + "/"
 
 
-
-os.makedirs(analysisPath)
-
-
-for name in files_names:
+def extractData(files_path, script_path ):
+    files_names = retrieveCorporas(files_path)
+    analysisPath = files_path + "filesAnalysis/"
+    os.makedirs(analysisPath)
+    for name in files_names:
         file_path = files_path + name
         files_analysis_path = analysisPath +  name + "/"
         os.makedirs(files_analysis_path)

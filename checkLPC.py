@@ -44,8 +44,8 @@ def getPitch(file_dir, file_name):
 
 
 """
-buenos_aires_path = "/home/santiagosau/PFI-UADE/PFI/repository/deuch-no-upload/deuch-no-upload/Buenos Aires"
-neuquen_path = "/home/santiagosau/PFI-UADE/PFI/repository/deuch-no-upload/deuch-no-upload/Neuquen"
+buenos_aires_path = "***/Buenos Aires"
+neuquen_path = "***/Neuquen"
 group = "Parte_1"
 
 regions = []
